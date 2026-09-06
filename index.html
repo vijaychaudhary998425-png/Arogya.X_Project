@@ -837,11 +837,15 @@
             document.getElementById('adminLoginReqList').innerHTML = reqHtml || "No requests.";
 
             let compHtml = "";
-            complaintsDb.forEach(c => {
-                compHtml += `<div style="background:#022c22; padding:8px; margin-bottom:6px; border-radius:4px; font-size:12px; border:1px solid #059669;">
-                    <b>ID: ${c.id}</b> | Name: ${c.name} | Status: <span style="color:#fca5a5;">${c.status}</span>
-                </div>`;
-            });
+    complaintsDb.forEach(c => {
+        compHtml += `<div style="background:#022c22; padding:8px; margin-bottom:6px; border-radius:4px; font-size:12px;">
+            <b>ID: ${c.id}</b> | Name: ${c.name} | Status: <span style="color:#fca5a5;">${c.status}</span>
+            <div style="margin-top: 5px;">
+                <button onclick="approveComplaint('${c.id}')" style="background:#28a745; color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:11px;">Approve</button>
+                <button onclick="openReplyModal('${c.id}')" style="background:#007bff; color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:11px; margin-left:5px;">Reply</button>
+            </div>
+        </div>`;
+    });
             document.getElementById('adminComplaintList').innerHTML = compHtml || "No complaints.";
         }
     </script>
