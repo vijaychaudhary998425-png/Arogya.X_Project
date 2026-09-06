@@ -260,6 +260,7 @@
             </div>
 
             <div id="adminDashboard" style="display:none; margin-top:15px;">
+                <div id="adminPanelHeader"></div>
                 <h4 style="color:#34d399; font-size:14px; margin-bottom:8px;">👩‍⚕️ आशा वर्कर ग्रामीण सर्वे डेटा (ASHA Sync Reports)</h4>
                 <div id="adminAshaList" style="margin-bottom:20px; max-height:200px; overflow-y:auto;"></div>
 
@@ -818,8 +819,61 @@
                 document.getElementById('adminLoginErr').innerText = "Incorrect Admin Password!";
             }
         }
+        // Admin Logout Function
+function adminLogout() {
+    document.getElementById('adminDashboard').style.display = 'none';
+    document.getElementById('adminAuthSection').style.display = 'block';
+    let passInput = document.getElementById('adminPasswordInput');
+    if (passInput) passInput.value = '';
+    alert("Logged out successfully from Admin Panel.");
+}
 
+// Change Password Function
+function openChangePasswordModal() {
+    let newPass = prompt("Enter new Admin Password:");
+    if (newPass && newPass.trim() !== "") {
+        localStorage.setItem('mah_admin_pass', newPass.trim());
+        alert("Admin password updated successfully!");
+    }
+}
+// Complaint ko Approve / Resolve karne ka function
+function approveComplaint(id) {
+    let comp = complaintsDb.find(c => c.id === id);
+    if (comp) {
+        comp.status = "Approved & Officially Resolved";
+        localStorage.setItem('mah_complaints', JSON.stringify(complaintsDb));
+        alert("Complaint " + id + " has been approved and resolved successfully!");
+        renderAdminPanel();
+    }
+}
+
+// User ko Reply dene ka modal kholne ka function
+function openReplyModal(id) {
+    let replyText = prompt("Enter official response/reply for complaint ID: " + id);
+    if (replyText && replyText.trim() !== "") {
+        let comp = complaintsDb.find(c => c.id === id);
+        if (comp) {
+            comp.status = "Resolved with Reply: " + replyText;
+            localStorage.setItem('mah_complaints', JSON.stringify(complaintsDb));
+            alert("Reply sent successfully to user!");
+            renderAdminPanel();
+        }
+    }
+}
         function renderAdminPanel() {
+            // Admin Control Panel Header with Logout & Change Password Buttons
+    let adminHeader = document.getElementById('adminPanelHeader');
+    if (adminHeader) {
+        adminHeader.innerHTML = `
+            <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; background: #011611; padding: 10px; border-radius: 6px;">
+                <h3 style="color: #34d399; margin: 0;">Admin Control Panel</h3>
+                <div>
+                    <button onclick="openChangePasswordModal()" style="background:#ffc107; color:#000; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px; margin-right:5px;">Change Password</button>
+                    <button onclick="adminLogout()" style="background:#dc3545; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px;">Logout</button>
+                </div>
+            </div>
+        `;
+    }
             let ashaHtml = "";
             ashaReportsDb.forEach(r => {
                 ashaHtml += `<div style="background:#022c22; padding:8px; margin-bottom:6px; border-radius:4px; font-size:12px; border:1px solid #059669;">
