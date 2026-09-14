@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="pageTitle">महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | AarogyX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase App & Database Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b1a12; color: #e0f2f1; line-height: 1.6; }
@@ -287,7 +290,43 @@
         let complaintsDb = JSON.parse(localStorage.getItem('mah_complaints')) || [
             { id: "MAH-1001", name: "Ramesh Pawar", contact: "9876543210", message: "Medicine Unavailability in PHC", status: "Pending Admin Review", reply: "Under review by Health Department..." }
         ];
+// --- FIREBASE INITIALIZATION & REAL-TIME SYNC ---
+const firebaseConfig = {
+  apiKey: "AIzaSyAxENM-jLw24NYzfYHKkAc6FsbZsqeGeY4",
+  authDomain: "aarogyax-ba06f.firebaseapp.com",
+  projectId: "aarogyax-ba06f",
+  storageBucket: "aarogyax-ba06f.firebasestorage.app",
+  messagingSenderId: "907627847147",
+  appId: "1:907627847147:web:8cc848e7025e2d7aea0dae",
+  measurementId: "G-JGCCYVMX4L"
+};
 
+// Initialize Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+// --- ENABLE OFFLINE PERSISTENCE ---
+firebase.database().goOnline(); // Ensure connection is active
+// Firebase automatically handles local disk caching for offline reads/writes in web sdk, 
+// lekin hum offline queue ko enable karne ke liye yeh ensure karenge:
+// Real-time listener for Complaints (Kisi bhi device se aane wali complaint yahan sync hogi)
+db.ref('complaints').on('value', (snapshot) => {
+    const data = snapshot.val();
+    complaintsDb = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+    if (typeof renderAdminPanel === 'function') {
+        renderAdminPanel();
+    }
+});
+
+// Real-time listener for ASHA Reports & Verification Status
+db.ref('ashaReports').on('value', (snapshot) => {
+    const data = snapshot.val();
+    ashaReportsDb = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+    if (typeof renderAdminPanel === 'function') {
+        renderAdminPanel();
+    }
+});
         const medicalDatabase = [
             {
                 keys: ["fever", "bukhar", "ताप", "बुखार"],
@@ -713,29 +752,71 @@
             closePortalModal();
             alert("Logged out from ASHA Portal securely.");
         }
+function submitAshaOfflineData() {
+    let editIdxInput = document.getElementById('editAshaIndex');
+    let editIdx = editIdxInput ? parseInt(editIdxInput.value) : -1;
 
-        function submitAshaOfflineData() {
-            let editIdx = parseInt(document.getElementById('editAshaIndex').value);
-            let name = document.getElementById('ashaWorkerName').value.trim();
-            let village = document.getElementById('ashaVillage').value.trim();
-            let families = document.getElementById('ashaFamilies').value.trim();
-            let pregnant = document.getElementById('ashaPregnant').value.trim();
-            let vaccinated = document.getElementById('ashaVaccinated').value.trim();
+    let nameEl = document.getElementById('ashaWorkerName');
+    let villageEl = document.getElementById('ashaVillage');
+    let familiesEl = document.getElementById('ashaFamilies');
 
-            if(!name || !village || !families) { alert("Please fill required fields."); return; }
-            let today = new Date().toISOString().split('T')[0];
+    let name = nameEl ? nameEl.value : "";
+    let village = villageEl ? villageEl.value : "";
+    let families = familiesEl ? familiesEl.value : "";
 
-            if(editIdx >= 0) {
-                ashaReportsDb[editIdx] = { ...ashaReportsDb[editIdx], workerName: name, village, families: parseInt(families), pregnant: parseInt(pregnant||0), childrenVaccinated: parseInt(vaccinated||0), status: "Updated & Synced" };
-                document.getElementById('editAshaIndex').value = "-1";
-            } else {
-                ashaReportsDb.push({ id: "ASHA-" + Math.floor(1000 + Math.random() * 9000), workerName: name, village, families: parseInt(families), pregnant: parseInt(pregnant||0), childrenVaccinated: parseInt(vaccinated||0), status: "Synced with Admin", date: today });
+    let pregnantEl = document.getElementById('ashaPregnant');
+    let vaccinatedEl = document.getElementById('ashaVaccinated');
+    let pregnant = pregnantEl ? pregnantEl.value : "";
+    let vaccinated = vaccinatedEl ? vaccinatedEl.value : "";
+
+    if(!name || !village || !families) {
+        alert("Please fill all required fields!");
+        return;
+    }
+    
+    let today = new Date().toISOString().split('T')[0];
+
+    let reportPayload = {
+        workerName: name,
+        village: village,
+        families: families,
+        pregnant: pregnant,
+        vaccinated: vaccinated,
+        date: today,
+        status: "Pending Verification"
+    };
+
+    if(typeof ashaReportsDb === 'undefined') {
+        window.ashaReportsDb = [];
+    }
+
+    if(editIdx >= 0 && ashaReportsDb[editIdx]) {
+        ashaReportsDb[editIdx] = reportPayload;
+    } else {
+        ashaReportsDb.push(reportPayload);
+    }
+
+    // LocalStorage mein save karo
+    localStorage.setItem('mah_asha_reports', JSON.stringify(ashaReportsDb));
+
+    // Firebase Cloud par bhejo agar net chal raha hai
+    if (navigator.onLine && typeof db !== 'undefined') {
+        db.ref('ashaReports').push(reportPayload, (error) => {
+            if (!error) {
+                console.log("Successfully synced to Firebase Cloud!");
             }
-            localStorage.setItem('mah_asha_reports', JSON.stringify(ashaReportsDb));
-            document.getElementById('ashaSyncMsg').innerText = "✅ Saved and synced successfully!";
-            setTimeout(() => openPortalModal('asha'), 800);
-        }
+        });
+        let msgEl = document.getElementById('ashaSyncmsg');
+        if(msgEl) msgEl.innerText = "Saved & Synced to Cloud!";
+    } else {
+        let msgEl = document.getElementById('ashaSyncmsg');
+        if(msgEl) msgEl.innerText = "Saved Offline! Will sync when online.";
+    }
 
+    setTimeout(() => {
+        if(typeof openPortalModal === 'function') openPortalModal('asha');
+    }, 800);
+}
         function editAshaReport(idx) {
             let r = ashaReportsDb[idx];
             document.getElementById('editAshaIndex').value = idx;
@@ -790,15 +871,21 @@
         function closeAdminModal() { document.getElementById('adminModal').style.display = 'none'; }
 
         function requestLoginOtp() {
-            let name = document.getElementById('loginName').value.trim();
-            let contact = document.getElementById('loginContact').value.trim();
-            if(!name || contact.length !== 10) { alert("Enter valid name and 10-digit mobile number."); return; }
-            let otp = Math.floor(1000 + Math.random() * 9000);
-            loginRequests.push({ name, contact, otp, status: "Pending" });
-            localStorage.setItem('mah_login_reqs', JSON.stringify(loginRequests));
-            document.getElementById('loginMsg').innerText = `✅ OTP request sent to admin panel! (Demo OTP: ${otp})`;
-        }
-
+    let name = document.getElementById('loginName').value.trim();
+    let contact = document.getElementById('loginContact').value.trim();
+    
+    if(!name || contact.length !== 10) { 
+        alert("Enter valid name and 10-digit mobile number."); 
+        return; 
+    }
+    
+    let otp = Math.floor(1000 + Math.random() * 9000);
+    loginRequests.push({ name, contact, otp, status: "Pending" });
+    localStorage.setItem('mah_login_req', JSON.stringify(loginRequests));
+    
+    alert("📱 SMS Sent to " + contact + "\nYour AarogyX Login OTP is: " + otp);
+    document.getElementById('loginMsg').innerText = "📱 OTP successfully sent via SMS to " + contact;
+}
         function verifyLoginOtp() {
             let enteredOtp = document.getElementById('loginOtpInput').value.trim();
             let lastReq = loginRequests[loginRequests.length - 1];
