@@ -690,61 +690,130 @@ db.ref('ashaReports').on('value', (snapshot) => {
         function closeOutput() { document.getElementById('outputBox').style.display = 'none'; }
 
         function openPortalModal(portalType) {
-            let modal = document.getElementById('portalModal');
-            let titleEl = document.getElementById('portalModalTitle');
-            let bodyEl = document.getElementById('portalModalBody');
-            let extraEl = document.getElementById('portalModalExtra');
-            extraEl.innerHTML = "";
+    let bodyEl = document.getElementById('portalModalBody');
+    let titleEl = document.getElementById('portalModalTitle');
+    let extraEl = document.getElementById('portalModalExtra');
+    let modal = document.getElementById('portalModal');
+    
+    extraEl.innerHTML = "";
+    let titleText = "";
+    let bodyText = "";
 
-            let titleText = "";
-            let bodyText = "";
-
-            if(portalType === 'asha') {
-                titleText = "ASHA Worker Portal & Reports Management";
-                bodyText = "Authorized ASHA Panel: Logged in successfully. You can manage and edit offline survey reports below.";
-                
-                let reportsHtml = "";
-                ashaReportsDb.forEach((r, idx) => {
-                    reportsHtml += `<div style="background:#022c22; padding:8px; margin-bottom:6px; border-radius:4px; font-size:12px; border:1px solid #059669;">
-                        <b>ID: ${r.id}</b> | Worker: <b style="color:#34d399;">${r.workerName}</b><br>
-                        Village: ${r.village} | Families: ${r.families} | Pregnant: ${r.pregnant} | Vaccinated: ${r.childrenVaccinated}<br>
-                        <div style="margin-top:5px; display:flex; gap:6px;">
-                            <button onclick="editAshaReport(${idx})" style="padding:3px 8px; font-size:11px; background:#d97706; color:#fff; font-weight:bold; border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-pen"></i> Edit</button>
-                            <button onclick="deleteAshaReport(${idx})" style="padding:3px 8px; font-size:11px; background:#dc2626; color:#fff; font-weight:bold; border:none; border-radius:4px; cursor:pointer;"><i class="fa-solid fa-trash"></i> Delete</button>
-                        </div>
-                    </div>`;
-                });
-
-                extraEl.innerHTML = `
-                    <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
-                        <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">📝 नया सर्वे डेटा जोड़ें या अपडेट करें</h4>
-                        <input type="hidden" id="editAshaIndex" value="-1">
-                        <input type="text" id="ashaWorkerName" placeholder="ASHA Worker Full Name">
-                        <input type="text" id="ashaVillage" placeholder="Village / Gram Panchayat Name">
-                        <div style="display:flex; gap:8px;">
-                            <input type="number" id="ashaFamilies" placeholder="Families Surveyed">
-                            <input type="number" id="ashaPregnant" placeholder="Pregnant Women Count">
-                        </div>
-                        <input type="number" id="ashaVaccinated" placeholder="Children Immunized Count">
-                        <button class="action-btn" id="ashaSaveBtn" onclick="submitAshaOfflineData()" style="width:100%; margin-top:5px;"><i class="fa-solid fa-cloud-arrow-up"></i> Save & Sync to Admin</button>
-                        <div id="ashaSyncMsg" style="font-size:12px; color:#34d399; margin-top:4px;"></div>
-                        
-                        <h4 style="color:#34d399; font-size:13px; margin: 15px 0 8px 0;">📋 दर्ज सभी रिपोर्ट्स:</h4>
-                        <div style="max-height:150px; overflow-y:auto;" id="ashaWorkerReportsList">
-                            ${reportsHtml || "<p style='font-size:12px; color:#9ca3af;'>No reports available.</p>"}
-                        </div>
-                        <button onclick="ashaLogout()" style="margin-top:10px; background:#dc2626; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">Logout from ASHA Portal</button>
+    if (portalType === 'asha') {
+        titleText = "ASHA Worker Portal & Reports Management";
+        bodyText = "Authorized ASHA Panel: Logged in successfully. You can manage and edit offline survey reports below.";
+        
+        let reportsHtml = "";
+        if (typeof ashaReportsDb !== 'undefined') {
+            ashaReportsDb.forEach((r, idx) => {
+                reportsHtml += `<div style="background:#022c22; padding:8px; margin-bottom:6px; border-radius:4px; font-size:12px; border:1px solid #059669;">
+                    <b>ID: ${r.id}</b> | Worker: <b style="color:#34d399;">${r.workerName}</b><br>
+                    Village: ${r.village} | Families: ${r.families} | Pregnant: ${r.pregnant} | Vaccinated: ${r.childrenVaccinated}<br>
+                    <div style="margin-top:5px; display:flex; gap:8px;">
+                        <button onclick="editAshaReport(${idx})" style="padding:3px 8px; font-size:11px; background:#d97706; color:#fff; font-weight:bold; border:none; border-radius:3px; cursor:pointer;">Edit</button>
+                        <button onclick="deleteAshaReport(${idx})" style="padding:3px 8px; font-size:11px; background:#dc2626; color:#fff; font-weight:bold; border:none; border-radius:3px; cursor:pointer;">Delete</button>
                     </div>
-                `;
-            } else {
-                titleText = portalType.toUpperCase() + " PORTAL";
-                bodyText = "Access portal features securely through Maharashtra Health network.";
-            }
-
-            titleEl.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#34d399;"></i> ${titleText}`;
-            bodyEl.innerText = bodyText;
-            modal.style.display = 'flex';
+                </div>`;
+            });
         }
+
+        extraEl.innerHTML = `
+            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
+                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">📁 नया सर्वे डेटा जोड़ें या अपडेट करें</h4>
+                <input type="hidden" id="editAshaIndex" value="-1">
+                <input type="text" id="ashaWorkerName" placeholder="ASHA Worker Full Name" style="width:100%; padding:6px; margin-bottom:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <input type="text" id="ashaVillage" placeholder="Village / Gram Panchayat Name" style="width:100%; padding:6px; margin-bottom:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <div style="display:flex; gap:8px; margin-bottom:6px;">
+                    <input type="number" id="ashaFamilies" placeholder="Families Surveyed" style="width:50%; padding:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                    <input type="number" id="ashaPregnant" placeholder="Pregnant Women Count" style="width:50%; padding:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                </div>
+                <input type="number" id="ashaVaccinated" placeholder="Children Immunized Count" style="width:100%; padding:6px; margin-bottom:8px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <button class="action-btn" id="ashaSaveBtn" onclick="submitAshaOfflineData()" style="width:100%; padding:8px; background:#059669; color:#fff; border:none; border-radius:4px; font-weight:bold; cursor:pointer;"><i class="fa-solid fa-cloud-arrow-up"></i> Save Report</button>
+                <div id="ashaSyncMsg" style="font-size:12px; color:#34d399; margin-top:4px;"></div>
+                
+                <h4 style="color:#34d399; font-size:13px; margin: 15px 0 8px 0;">📊 दर्ज सभी रिपोर्ट:</h4>
+                <div style="max-height:150px; overflow-y:auto;" id="ashaWorkerReportsList">
+                    ${reportsHtml || "<p style='font-size:12px; color:#9ca3af;'>No reports available.</p>"}
+                </div>
+                <button onclick="ashaLogout()" style="margin-top:10px; background:#dc2626; color:#fff; padding:6px 12px; border:none; border-radius:4px; cursor:pointer;">Logout</button>
+            </div>
+        `;
+    } 
+    else if (portalType === 'patient') {
+        titleText = "Patient / Citizen Portal";
+        bodyText = "Welcome to Patient Portal. Access your Digital Health Card, QR code scanning, and appointment bookings.";
+        extraEl.innerHTML = `
+            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
+                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">🆔 Digital Health Card & Services</h4>
+                <p style="font-size:12px; color:#9ca3af; margin-bottom:8px;">Scan your ABHA QR code or view your generated health profile.</p>
+                <button onclick="alert('Digital Health Card fetched successfully!')" style="background:#059669; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">View Health Card</button>
+            </div>
+        `;
+    }
+    else if (portalType === 'doctor') {
+        titleText = "Doctor Specialist Portal";
+        bodyText = "Remote patient history access, clinical decision support, and expert teleconsultation tools.";
+        extraEl.innerHTML = `
+            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
+                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">🩺 Doctor Secure Panel</h4>
+                <input type="text" placeholder="Doctor ID / Medical License No." style="width:100%; padding:6px; margin-bottom:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <input type="password" placeholder="Secure PIN" style="width:100%; padding:6px; margin-bottom:8px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <button onclick="alert('Doctor session authenticated successfully!')" style="background:#059669; color:#fff; border:none; padding:8px; width:100%; border-radius:4px; font-weight:bold; cursor:pointer;">Access Teleconsultation Queue</button>
+            </div>
+        `;
+    }
+    else if (portalType === 'emergency' || portalType === 'ambulance') {
+        titleText = "Emergency & Ambulance Dispatch";
+        bodyText = "Instant GPS-linked ambulance dispatch and emergency SOS helpline integration.";
+        extraEl.innerHTML = `
+            <div style="margin-top:10px; border-top:1px solid #ef4444; padding-top:10px;">
+                <h4 style="color:#ef4444; font-size:13px; margin-bottom:8px;">🚨 SOS Emergency Dispatch</h4>
+                <p style="font-size:12px; color:#9ca3af; margin-bottom:8px;">Pressing dispatch will alert the nearest PHC ambulance unit with your current location.</p>
+                <button onclick="alert('Emergency Ambulance Dispatched! Driver assigned.')" style="background:#dc2626; color:#fff; border:none; padding:10px; width:100%; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;"><i class="fa-solid fa-ambulance"></i> DISPATCH AMBULANCE NOW</button>
+            </div>
+        `;
+    }
+    else if (portalType === 'schemes' || portalType === 'government') {
+        titleText = "Government Schemes (Maharashtra)";
+        bodyText = "Explore Mahatma Jyotirao Phule Jan Arogya Yojana & other state health welfare benefits.";
+        extraEl.innerHTML = `
+            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
+                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">📜 Available Health Schemes</h4>
+                <ul style="font-size:12px; color:#d1d5db; padding-left:15px; margin-bottom:8px;">
+                    <li><b>MJPJAY:</b> Cashless medical treatment up to ₹1.5 Lakhs.</li>
+                    <li><b>Pradhan Mantri Jan Arogya Yojana (AB-PMJAY):</b> Comprehensive health coverage.</li>
+                </ul>
+                <input type="text" placeholder="Check Eligibility via Aadhaar / Ration Card" style="width:100%; padding:6px; margin-bottom:8px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <button onclick="alert('Eligibility Verified under MJPJAY Scheme!')" style="background:#059669; color:#fff; border:none; padding:8px; width:100%; border-radius:4px; font-weight:bold; cursor:pointer;">Check Eligibility</button>
+            </div>
+        `;
+    }
+    else if (portalType === 'maternal' || portalType === 'tracker') {
+        titleText = "Maternal, Child & Chronic Tracker";
+        bodyText = "Tracking pregnancy milestones, immunization schedules, and chronic care management.";
+        extraEl.innerHTML = `
+            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
+                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">👶 Mother & Child Care Tracker</h4>
+                <input type="text" placeholder="Mother/Child Name" style="width:100%; padding:6px; margin-bottom:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                <select style="width:100%; padding:6px; margin-bottom:8px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
+                    <option>Pregnancy Tracking (Trimester Milestone)</option>
+                    <option>Infant Immunization Schedule</option>
+                    <option>Chronic Care (Diabetes/Hypertension)</option>
+                </select>
+                <button onclick="alert('Tracker record updated successfully!')" style="background:#059669; color:#fff; border:none; padding:8px; width:100%; border-radius:4px; font-weight:bold; cursor:pointer;">View Schedule & Reminders</button>
+            </div>
+        `;
+    }
+    else {
+        titleText = portalType.toUpperCase() + " PORTAL";
+        bodyText = "Access portal features securely through Maharashtra Health network.";
+        extraEl.innerHTML = "";
+    }
+
+    titleEl.innerHTML = `<i class="fa-solid fa-circle-info" style="color:#34d399;"></i> ${titleText}`;
+    bodyEl.innerText = bodyText;
+    modal.style.display = 'flex';
+}
 
         function closePortalModal() { document.getElementById('portalModal').style.display = 'none'; }
         function ashaLogout() {
