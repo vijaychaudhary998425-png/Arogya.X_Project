@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | AarogyX</title>
+    <title id="pageTitle">महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | Arogya.X</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase App & Database Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -90,9 +90,9 @@
 
     <header>
         <div class="logo-area">
-            <img src="logo.png" alt="AarogyX Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/26/Emblem_of_India.svg'">
+            <img src="logo.png" alt="Arogya.X Logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/2/26/Emblem_of_India.svg'">
             <div class="logo-text">
-                <h1 id="lblHeaderTitle">महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग (AarogyX)</h1>
+                <h1 id="lblHeaderTitle">महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग (Arogya.X)</h1>
                 <p id="lblHeaderSub">शासकीय अधिकृत पोर्टल</p>
             </div>
         </div>
@@ -109,7 +109,7 @@
 
     <div class="container">
         <div class="emergency-banner">
-            <h3 id="lblEmTitle"><i class="fa-solid fa-triangle-exclamation"></i> आपत्कालीन आणि सहाय्य हेल्पलाइन (२४x७ AarogyX सपोर्ट)</h3>
+            <h3 id="lblEmTitle"><i class="fa-solid fa-triangle-exclamation"></i> आपत्कालीन आणि सहाय्य हेल्पलाइन (२४x७ Arogya.X सपोर्ट)</h3>
             <p id="lblEmDesc">आपत्कालीन मदतीसाठी त्वरित संपर्क साधा:</p>
             <div class="emergency-contacts">
                 <span id="lblPolNum">पोलिसांची मदत: 112</span>
@@ -119,7 +119,7 @@
         </div>
 
         <div class="search-section">
-            <h2 id="lblSearchHeading"><i class="fa-solid fa-notes-medical"></i> दवा और बीमारी चेकर (AarogyX AI Search)</h2>
+            <h2 id="lblSearchHeading"><i class="fa-solid fa-notes-medical"></i> दवा और बीमारी चेकर (Arogya.X AI Search)</h2>
             <p id="lblSearchSub">किसी भी बीमारी या दवा का नाम लिखें (जैसे: fever, dolo, sumo, malaria, diabetes, cold) और पूरी जानकारी पाएं।</p>
             <div class="search-box-wrapper">
                 <input type="text" id="mainInput" placeholder="दवा या बीमारी का नाम लिखें..." oninput="showSuggestions(this.value)">
@@ -161,7 +161,7 @@
         </div>
 
         <div class="grievance-section">
-            <h2 id="lblCompHeading"><i class="fa-solid fa-headset"></i> तक्रार और विस्तृत अभिप्राय पोर्टल (AarogyX Feedback & Grievance)</h2>
+            <h2 id="lblCompHeading"><i class="fa-solid fa-headset"></i> तक्रार और विस्तृत अभिप्राय पोर्टल (Arogya.X Feedback & Grievance)</h2>
             <p id="lblCompSub">अपनी समस्या या शिकायत के विकल्प नीचे चुनें। यह फीडबैक सीधे स्वास्थ्य विभाग के पास दर्ज होगा।</p>
             
             <div class="checkbox-group" id="checkboxGroupContainer">
@@ -199,11 +199,11 @@
 
     <div class="chat-popup" id="chatPopup">
         <div class="chat-popup-header">
-            <span id="lblChatPopupTitle"><i class="fa-solid fa-robot"></i> AarogyX AI सहायक</span>
+            <span id="lblChatPopupTitle"><i class="fa-solid fa-robot"></i> Arogya.X AI सहायक</span>
             <button onclick="toggleChatPopup()">✖</button>
         </div>
         <div class="chat-container" id="chatContainer">
-            <div class="chat-msg bot" id="botInitialGreet">नमस्ते! मैं AarogyX AI सहायक हूँ। यदि आप शिकायत दर्ज करना चाहते हैं, तो कृपया नीचे दिए गए फॉर्म का उपयोग करें।</div>
+            <div class="chat-msg bot" id="botInitialGreet">नमस्ते! मैं Arogya.X AI सहायक हूँ। यदि आप शिकायत दर्ज करना चाहते हैं, तो कृपया नीचे दिए गए फॉर्म का उपयोग करें।</div>
         </div>
         <div class="chat-input-row">
             <input type="text" id="chatInput" placeholder="यहाँ अपना सवाल पूछें...">
@@ -277,7 +277,7 @@
     </div>
 
     <footer id="lblFooter">
-        © २०२६ महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग (AarogyX). सर्व हक्क राखीव.
+        © २०२६ महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग (Arogya.X). सर्व हक्क राखीव.
     </footer>
 
     <script>
@@ -368,17 +368,17 @@ db.ref('ashaReports').on('value', (snapshot) => {
 
         const translations = {
             hi: {
-                pageTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | AarogyX",
-                headerTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग (AarogyX)",
+                pageTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | Arogya.X",
+                headerTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग (Arogya.X)",
                 headerSub: "शासकीय अधिकृत पोर्टल",
                 loginNav: "नागरिक लॉगिन",
                 adminNav: "प्रशासन पोर्टल",
-                emTitle: "आपत्कालीन आणि सहाय्य हेल्पलाइन (२४x७ AarogyX सपोर्ट)",
+                emTitle: "आपत्कालीन आणि सहाय्य हेल्पलाइन (२४x७ Arogya.X सपोर्ट)",
                 emDesc: "आपत्कालीन मदतीसाठी त्वरित संपर्क साधा:",
                 polNum: "पोलिसांची मदत: 112",
                 amb108: "रुग्णवाहिका (आपत्कालीन): 108",
                 amb104: "आरोग्य सल्ला: 104",
-                searchHeading: "दवा और बीमारी चेकर (AarogyX AI Search)",
+                searchHeading: "दवा और बीमारी चेकर (Arogya.X AI Search)",
                 searchSub: "किसी भी बीमारी या दवा का नाम लिखें (जैसे: fever, dolo, sumo, malaria, diabetes, cold) और पूरी जानकारी पाएं।",
                 searchBtn: "खोजबीन",
                 p1Title: "नागरिक / रोगी पोर्टल",
@@ -393,7 +393,7 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 p5Desc: "महात्मा ज्योतिराव फुले जन आरोग्य योजना और अन्य स्वास्थ्य कल्याणकारी लाभ।",
                 p6Title: "गर्भावस्था, बाल एवं क्रॉनिक ट्रेकर",
                 p6Desc: "गर्भावस्था के चरण, बच्चों के टीकाकरण का शेड्यूल और क्रॉनिक बीमारियों की ट्रैकिंग।",
-                compHeading: "तक्रार और विस्तृत अभिप्राय पोर्टल (AarogyX Feedback & Grievance)",
+                compHeading: "तक्रार और विस्तृत अभिप्राय पोर्टल (Arogya.X Feedback & Grievance)",
                 compSub: "अपनी समस्या या शिकायत के विकल्प नीचे चुनें। यह फीडबैक सीधे स्वास्थ्य विभाग के पास दर्ज होगा।",
                 issue1: "सरकारी अस्पताल में दवा उपलब्ध नहीं है",
                 issue2: "ओपीडी समय के दौरान डॉक्टर अनुपस्थित मिले",
@@ -404,8 +404,8 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 subCompBtn: "विस्तृत शिकायत दर्ज करें",
                 trackHeading: "🔍 शिकायत की स्थिति और प्रशासन का उत्तर देखें",
                 trackBtn: "स्थिति जांचें",
-                chatPopupTitle: "AarogyX AI सहायक",
-                botInitialGreet: "नमस्ते! मैं AarogyX AI सहायक हूँ। यदि आप शिकायत दर्ज करना चाहते हैं, तो कृपया नीचे दिए गए फॉर्म का उपयोग करें।",
+                chatPopupTitle: "Arogya.X AI सहायक",
+                botInitialGreet: "नमस्ते! मैं Arogya.X AI सहायक हूँ। यदि आप शिकायत दर्ज करना चाहते हैं, तो कृपया नीचे दिए गए फॉर्म का उपयोग करें।",
                 sendChat: "भेजें",
                 modTitle: "नागरिक सुरक्षित लॉगिन और ओटीपी",
                 modSub: "10-अंकी मोबाइल नंबर दर्ज करें। ओटीपी सत्यापन प्रशासक द्वारा किया जाएगा।",
@@ -417,17 +417,17 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 adminLoginBtn: "लॉगिन करें"
             },
             mr: {
-                pageTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | AarogyX",
-                headerTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य (AarogyX)",
+                pageTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य विभाग | Arogya.X",
+                headerTitle: "महाराष्ट्र शासन - सार्वजनिक आरोग्य (Arogya.X)",
                 headerSub: "महाराष्ट्र शासन अधिकृत पोर्टल",
                 loginNav: "नागरिक लॉगिन",
                 adminNav: "प्रशासन पोर्टल",
-                emTitle: "आपत्कालीन आणि मदत हेल्पलाइन (२४x७ AarogyX सपोर्ट)",
+                emTitle: "आपत्कालीन आणि मदत हेल्पलाइन (२४x७ Arogya.X सपोर्ट)",
                 emDesc: "तातडीच्या मदतीसाठी संपर्क साधा:",
                 polNum: "पोलिस आपत्कालीन: 112",
                 amb108: "रुग्णवाहिका (आपत्कालीन): 108",
                 amb104: "आरोग्य सल्ला: 104",
-                searchHeading: "औषध आणि आजार तपासणी (AarogyX AI Search)",
+                searchHeading: "औषध आणि आजार तपासणी (Arogya.X AI Search)",
                 searchSub: "कोणत्याही आजाराचे किंवा औषधाचे नाव लिहा (उदा. fever, dolo, sumo, malaria, diabetes, cold).",
                 searchBtn: "शोध घ्या",
                 p1Title: "नागरिक / रुग्ण पोर्टल",
@@ -442,7 +442,7 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 p5Desc: "महात्मा ज्योतिराव फुले जन आरोग्य योजना आणि आरोग्य लाभ.",
                 p6Title: "माता, बाल आणि क्रॉनिक ट्रॅकर",
                 p6Desc: "गरोदरपण टप्पे, लसीकरण वेळापत्रक आणि क्रॉनिक केअर ट्रॅकिंग.",
-                compHeading: "तक्रार आणि अभिप्राय पोर्टल (AarogyX Feedback & Grievance)",
+                compHeading: "तक्रार आणि अभिप्राय पोर्टल (Arogya.X Feedback & Grievance)",
                 compSub: "खालील पर्यायांमधून तुमची समस्या किंवा तक्रार निवडा.",
                 issue1: "शासकीय रुग्णालयात औषधे उपलब्ध नाहीत",
                 issue2: "ओपीडी वेळेत डॉक्टर अनुपस्थित आढळले",
@@ -453,8 +453,8 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 subCompBtn: "तक्रार नोंदवा",
                 trackHeading: "🔍 तक्रारीची स्थिती आणि प्रशासनाचे उत्तर तपासा",
                 trackBtn: "स्थिती तपासा",
-                chatPopupTitle: "AarogyX AI सहाय्यक",
-                botInitialGreet: "नमस्कार! मी AarogyX AI सहाय्यक आहे. मी तुम्हाला कशी मदत करू?",
+                chatPopupTitle: "Arogya.X AI सहाय्यक",
+                botInitialGreet: "नमस्कार! मी Arogya.X AI सहाय्यक आहे. मी तुम्हाला कशी मदत करू?",
                 sendChat: "पाठवा",
                 modTitle: "नागरिक सुरक्षित लॉगिन आणि ओटीपी",
                 modSub: "१० अंकी मोबाईल नंबर प्रविष्ट करा.",
@@ -466,17 +466,17 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 adminLoginBtn: "लॉगिन करा"
             },
             en: {
-                pageTitle: "Govt of Maharashtra - Public Health Dept | AarogyX",
-                headerTitle: "Govt of Maharashtra - Public Health (AarogyX)",
+                pageTitle: "Govt of Maharashtra - Public Health Dept | Arogya.X",
+                headerTitle: "Govt of Maharashtra - Public Health (Arogya.X)",
                 headerSub: "Government of Maharashtra Portal",
                 loginNav: "Citizen Login",
                 adminNav: "Admin Portal",
-                emTitle: "Emergency & Support Helpline (24x7 AarogyX Support)",
+                emTitle: "Emergency & Support Helpline (24x7 Arogya.X Support)",
                 emDesc: "Contact official numbers immediately for emergency assistance:",
                 polNum: "Police Emergency: 112",
                 amb108: "Ambulance (Emergency): 108",
                 amb104: "Health Advice: 104",
-                searchHeading: "Medicine & Disease Checker (AarogyX AI Search)",
+                searchHeading: "Medicine & Disease Checker (Arogya.X AI Search)",
                 searchSub: "Type any disease or medicine name (e.g., fever, dolo, sumo, malaria, diabetes, cold) for complete guidance.",
                 searchBtn: "Search",
                 p1Title: "Patient / Citizen Portal",
@@ -491,7 +491,7 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 p5Desc: "Mahatma Jyotirao Phule Jan Arogya Yojana & Health welfare benefits.",
                 p6Title: "Maternal, Child & Chronic Tracker",
                 p6Desc: "Tracking pregnancy milestones, immunization schedules & chronic care.",
-                compHeading: "Grievance & Feedback Portal (AarogyX Feedback)",
+                compHeading: "Grievance & Feedback Portal (Arogya.X Feedback)",
                 compSub: "Select your issue or complaint options below. Feedback goes directly to the health department.",
                 issue1: "Medicine Unavailability in PHC",
                 issue2: "Doctor Absent during OPD Hours",
@@ -502,8 +502,8 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 subCompBtn: "Submit Grievance",
                 trackHeading: "🔍 Track Complaint Status & Admin Response",
                 trackBtn: "Check Status",
-                chatPopupTitle: "AarogyX AI Assistant",
-                botInitialGreet: "Hello! I am AarogyX AI Assistant. How can I help you today?",
+                chatPopupTitle: "Arogya.X AI Assistant",
+                botInitialGreet: "Hello! I am Arogya.X AI Assistant. How can I help you today?",
                 sendChat: "Send",
                 modTitle: "Citizen Secure Login & OTP",
                 modSub: "Enter 10-digit mobile number. OTP verification managed by admin.",
@@ -912,7 +912,7 @@ function submitAshaOfflineData() {
             container.innerHTML += `<div class="chat-msg user">${input.value}</div>`;
             input.value = "";
             setTimeout(() => {
-                container.innerHTML += `<div class="chat-msg bot">🤖 I am AarogyX AI Assistant. How can I help you further?</div>`;
+                container.innerHTML += `<div class="chat-msg bot">🤖 I am Arogya.X AI Assistant. How can I help you further?</div>`;
                 container.scrollTop = container.scrollHeight;
             }, 300);
         }
@@ -952,7 +952,7 @@ function submitAshaOfflineData() {
     loginRequests.push({ name, contact, otp, status: "Pending" });
     localStorage.setItem('mah_login_req', JSON.stringify(loginRequests));
     
-    alert("📱 SMS Sent to " + contact + "\nYour AarogyX Login OTP is: " + otp);
+    alert("📱 SMS Sent to " + contact + "\nYour Arogya.X Login OTP is: " + otp);
     document.getElementById('loginMsg').innerText = "📱 OTP successfully sent via SMS to " + contact;
 }
         function verifyLoginOtp() {
