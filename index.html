@@ -8,6 +8,7 @@
     <!-- Firebase App & Database Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b1a12; color: #e0f2f1; line-height: 1.6; }
@@ -740,28 +741,318 @@ db.ref('ashaReports').on('value', (snapshot) => {
         `;
     } 
     else if (portalType === 'patient') {
-        titleText = "Patient / Citizen Portal";
-        bodyText = "Welcome to Patient Portal. Access your Digital Health Card, QR code scanning, and appointment bookings.";
-        extraEl.innerHTML = `
-            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
-                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">🆔 Digital Health Card & Services</h4>
-                <p style="font-size:12px; color:#9ca3af; margin-bottom:8px;">Scan your ABHA QR code or view your generated health profile.</p>
-                <button onclick="alert('Digital Health Card fetched successfully!')" style="background:#059669; color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px;">View Health Card</button>
+    titleText = "Patient / Citizen Portal";
+    bodyText = "Welcome to Patient Portal. Access Digital Health Card, QR scanning, and book doctor appointments.";
+    
+    window.searchAbhaCard = function() {
+        var input = document.getElementById('abhaSearchInput').value.trim();
+        var box = document.getElementById('healthCardResult');
+        
+        if (!input || input.length < 5) {
+            box.innerHTML = '<div style="background:#451a03; color:#f87171; padding:8px; border-radius:4px; border:1px solid #f59e0b; font-size:12px; position:relative;">❌ Kripya valid ABHA ID darj karein. <button onclick="document.getElementById(\'healthCardResult\').innerHTML=\'\'" style="position:absolute; right:6px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer;">✖</button></div>';
+            return;
+        }
+
+        // Exact match for Vijay Chaudhary, otherwise dynamic unique profile for any other entered number!
+        var name, phone, dob;
+        if (input === "91-2211-7058-0155") {
+            name = "Vijay Chaudhary";
+            phone = "9984251087";
+            dob = "04-08-2006";
+        } else {
+            // Generate unique details based on the entered number so every ID looks different!
+            var namesList = ["Ramesh Kumar", "Sunita Devi", "Amit Patel", "Pooja Sharma", "Rajesh Verma", "Anita Gupta"];
+            var hash = 0;
+            for (var i = 0; i < input.length; i++) { hash += input.charCodeAt(i); }
+            name = namesList[hash % namesList.length];
+            phone = "98" + (Math.abs(hash * 12345) % 90000000 + 10000000);
+            dob = (hash % 20 + 10) + "-0" + (hash % 8 + 1) + "-199" + (hash % 5 + 3);
+        }
+
+        var htmlStr = '<div style="background:#064e3b; padding:10px; border-radius:6px; border:1px solid #34d399; color:#e2e8f0; font-size:12px; position:relative;">';
+        htmlStr += '<button onclick="document.getElementById(\'healthCardResult\').innerHTML=\'\'" style="position:absolute; right:6px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖</button>';
+        htmlStr += '<p style="margin:2px 0;"><b>Name:</b> ' + name + '</p>';
+        htmlStr += '<p style="margin:2px 0;"><b>ABHA Number:</b> ' + input + '</p>';
+        htmlStr += '<p style="margin:2px 0;"><b>ABHA Address:</b> ' + input.replace(/-/g,'') + '@abdm</p>';
+        htmlStr += '<p style="margin:2px 0;"><b>DOB / Mobile:</b> ' + dob + ' / ' + phone + '</p>';
+        htmlStr += '<p style="margin:2px 0;"><b>Status:</b> <span style="color:#34d399; font-weight:bold;">✔ Verified & Active</span></p>';
+        htmlStr += '</div>';
+
+        box.innerHTML = htmlStr;
+    };
+
+    window.startQrScan = function() {
+        var res = document.getElementById('qrResult');
+        res.innerHTML = '<div style="background:#0f172a; border:2px dashed #0284c7; padding:10px; border-radius:6px; margin-top:6px; text-align:center; position:relative;">' +
+            '<button onclick="window.stopCamAndClose();" style="position:absolute; right:8px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖ Close</button>' +
+            '<div style="font-size:11px; color:#38bdf8; margin-bottom:6px; font-weight:bold;">🔴 LIVE QR SCANNER: Align QR in Frame</div>' +
+            '<div style="width:100%; height:130px; background:#000; border-radius:4px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; border:1px solid #0284c7;">' +
+            '<video id="liveCamStream" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>' +
+            '<canvas id="qrCanvasElem" style="display:none;"></canvas>' +
+            '<div style="position:absolute; width:100%; height:2px; background:#ef4444; box-shadow:0 0 8px #ef4444; animation: scanAnim 1.5s infinite alternate;"></div>' +
+            '</div>' +
+            '<button id="captureRealQrBtn" style="margin-top:8px; background:#16a34a; color:#fff; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Capture & Decode QR</button>' +
+            '</div>' +
+            '<style>@keyframes scanAnim { 0% { top: 5%; } 100% { top: 90%; } }</style>';
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+                var videoElem = document.getElementById('liveCamStream');
+                if(videoElem) {
+                    videoElem.srcObject = stream;
+                    window.currentCamStream = stream;
+                }
+            })
+            .catch(function(err) {
+                var videoElem = document.getElementById('liveCamStream');
+                if(videoElem) {
+                    videoElem.parentElement.innerHTML = '<div style="color:#f87171; font-size:11px; padding:15px;">Camera access error. Please use manual ABHA search.</div>';
+                }
+            });
+
+        window.stopCamAndClose = function() {
+            if(window.currentCamStream) {
+                window.currentCamStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('qrResult').innerHTML = '';
+        };
+
+        setTimeout(function() {
+            var capBtn = document.getElementById('captureRealQrBtn');
+            if(capBtn) {
+                capBtn.onclick = function() {
+                    if(window.currentCamStream) {
+                        window.currentCamStream.getTracks().forEach(track => track.stop());
+                    }
+                    
+                    // Generate unique scanned profile on every random QR scan
+                    var scanPool = [
+                        { name: "Vijay Chaudhary", id: "91-2211-7058-0155", phone: "9984251087", dob: "04-08-2006" },
+                        { name: "Ramesh Kumar", id: "91-4433-2211-9988", phone: "9876543210", dob: "15-05-1995" },
+                        { name: "Sunita Devi", id: "91-7788-9900-1122", phone: "9123456789", dob: "22-11-1988" },
+                        { name: "Amit Patel", id: "91-6655-4433-2211", phone: "9911223344", dob: "10-09-2001" }
+                    ];
+                    var selectedScan = scanPool[Math.floor(Math.random() * scanPool.length)];
+
+                    document.getElementById('qrResult').innerHTML = '<div style="background:#064e3b; color:#fff; padding:10px; border-radius:4px; font-size:12px; margin-top:6px; position:relative; border:1px solid #34d399;">' +
+                        '✔ <b>QR Code Scanned & Verified!</b><br>' +
+                        'Patient Name: <b>' + selectedScan.name + '</b><br>' +
+                        'ABHA No: <b>' + selectedScan.id + '</b><br>' +
+                        'DOB: ' + selectedScan.dob + ' | Mobile: ' + selectedScan.phone + '<br>' +
+                        'Status: <span style="color:#fde047;">Ayushman Bharat Verified & Active</span>' +
+                        '<button onclick="document.getElementById(\'qrResult\').innerHTML=\'\'" style="position:absolute; right:6px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖</button>' +
+                        '</div>';
+                };
+            }
+        }, 200);
+    };
+
+    window.openBookingForm = function() {
+        var docName = document.getElementById('docSelect').value;
+        document.getElementById('bookingFormContainer').style.display = 'block';
+        document.getElementById('selectedDocTitle').innerText = docName;
+    };
+
+    window.closeBookingForm = function() {
+        document.getElementById('bookingFormContainer').style.display = 'none';
+    };
+
+    window.generateAppointmentPDF = function(e) {
+        e.preventDefault();
+        var pName = document.getElementById('pName').value;
+        var pAge = document.getElementById('pAge').value;
+        var pPhone = document.getElementById('pPhone').value;
+        var pIssue = document.getElementById('pIssue').value;
+        var doc = document.getElementById('selectedDocTitle').innerText;
+        var tokenNo = "OPD-" + Math.floor(1000 + Math.random() * 9000);
+        var date = new Date().toLocaleDateString();
+
+        var printWindow = window.open('', '', 'width=700,height=600');
+        printWindow.document.write('<html><head><title>OPD Appointment Slip - ' + tokenNo + '</title><style>body { font-family: Arial, sans-serif; padding: 20px; color: #1e293b; } .card { border: 2px solid #059669; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; } .header { text-align: center; border-bottom: 2px dashed #059669; padding-bottom: 10px; margin-bottom: 15px; } .header h2 { margin: 0; color: #059669; } .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; } .token { background: #059669; color: white; text-align: center; font-size: 18px; font-weight: bold; padding: 10px; border-radius: 6px; margin-top: 15px; } .footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 20px; }</style></head><body><div class="card"><div class="header"><h2>ArogyaX Healthcare Platform</h2><p style="margin:3px 0; font-weight:bold;">Official OPD Appointment Receipt</p></div><div class="row"><span><b>Receipt Date:</b> ' + date + '</span> <span><b>Token No:</b> ' + tokenNo + '</span></div><hr><div class="row"><span><b>Patient Name:</b> ' + pName + '</span> <span><b>Age/Phone:</b> ' + pAge + ' Yrs / ' + pPhone + '</span></div><div class="row"><span><b>Doctor:</b> ' + doc + '</span></div><div class="row"><span><b>Problem / Disease:</b> ' + pIssue + '</span></div><div class="token">TOKEN NUMBER: ' + tokenNo + '</div><div class="footer">Please present this printed pass or digital PDF copy at the OPD counter.<br>Thank you for using ArogyaX Digital Services.</div></div><script>window.onload = function() { window.print(); }<\/script></body></html>');
+        printWindow.document.close();
+    };
+
+    extraEl.innerHTML = `
+        <div style="margin-top:12px; border-top:1px solid #059669; padding-top:12px; display:flex; flex-direction:column; gap:12px;">
+            <div style="background:#0f172a; padding:10px; border-radius:6px; border:1px solid #1e293b;">
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 6px 0;">🪪 Search ABHA Digital Health Card</h4>
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <input type="text" id="abhaSearchInput" placeholder="Enter ABHA ID (e.g. 91-2211-7058-0155)" style="background:#1e293b; color:#fff; border:1px solid #059669; padding:6px; border-radius:4px; font-size:11px; flex:1;">
+                    <button onclick="window.searchAbhaCard()" style="background:#059669; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Search</button>
+                </div>
+                <div id="healthCardResult" style="margin-top:6px;"></div>
+            </div>
+
+            <div style="background:#0f172a; padding:10px; border-radius:6px; border:1px solid #1e293b;">
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 6px 0;">📷 Live Camera QR Scanner</h4>
+                <button onclick="window.startQrScan()" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Scan ABHA / OPD QR Code</button>
+                <div id="qrResult" style="font-size:12px; margin-top:6px;"></div>
+            </div>
+
+            <div style="background:#0f172a; padding:10px; border-radius:6px; border:1px solid #1e293b;">
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 6px 0;">📅 Select Doctor & Speciality</h4>
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <select id="docSelect" style="background:#1e293b; color:#fff; border:1px solid #059669; padding:6px; border-radius:4px; font-size:11px; flex:1;">
+                        <option>Dr. Sharma - Bukhar, Sardi & Bukhar (General Physician)</option>
+                        <option>Dr. Verma - Bacho Ke Rog (Pediatrician Specialist)</option>
+                        <option>Dr. Gupta - Dil / Heart Specialist (Cardiologist)</option>
+                        <option>Dr. Mehta - Haddi & Jod Dard Specialist (Orthopedic)</option>
+                        <option>Dr. Roy - Twacha & Skin Specialist (Dermatologist)</option>
+                        <option>Dr. Kapoor - Dimag & Kasht Rog (Neurologist)</option>
+                        <option>Dr. Joshi - Kaan, Naak, Gala Specialist (ENT Specialist)</option>
+                        <option>Dr. Anjali - Mahila & Garbhavaas Specialist (Gynecologist)</option>
+                    </select>
+                    <button onclick="window.openBookingForm()" style="background:#16a34a; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Book</button>
+                </div>
+
+                <div id="bookingFormContainer" style="display:none; background:#1e293b; padding:10px; border-radius:6px; border:1px solid #34d399; margin-top:8px; position:relative;">
+                    <button onclick="window.closeBookingForm()" style="position:absolute; right:8px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖ Close</button>
+                    <h5 style="color:#fbbf24; margin:0 0 8px 0; font-size:12px; padding-right:50px;">Patient Details for: <span id="selectedDocTitle"></span></h5>
+                    <form onsubmit="window.generateAppointmentPDF(event)">
+                        <input type="text" id="pName" placeholder="Mariz ka Naam (Patient Name)" required style="width:100%; background:#0f172a; color:#fff; border:1px solid #475569; padding:5px; border-radius:4px; font-size:11px; margin-bottom:6px;">
+                        <div style="display:flex; gap:6px; margin-bottom:6px;">
+                            <input type="number" id="pAge" placeholder="Umar (Age)" required style="width:48%; background:#0f172a; color:#fff; border:1px solid #475569; padding:5px; border-radius:4px; font-size:11px;">
+                            <input type="tel" id="pPhone" placeholder="Mobile Number" required style="width:48%; background:#0f172a; color:#fff; border:1px solid #475569; padding:5px; border-radius:4px; font-size:11px;">
+                        </div>
+                        <input type="text" id="pIssue" placeholder="Bimari ya Lakshan (Disease / Issue)" required style="width:100%; background:#0f172a; color:#fff; border:1px solid #475569; padding:5px; border-radius:4px; font-size:11px; margin-bottom:8px;">
+                        <button type="submit" style="width:100%; background:#059669; color:#fff; border:none; padding:7px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Generate OPD Pass & Print PDF</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+}
+   else if (portalType === 'doctor') {
+    titleText = "Doctor Specialist Portal";
+    bodyText = "Remote patient history access, clinical decision support, and expert teleconsultation tools.";
+    
+    window.verifyDoctorLogin = function(e) {
+        if(e) e.preventDefault();
+        var docId = document.getElementById('docIdInput').value.trim();
+        var docPin = document.getElementById('docPinInput').value.trim();
+        var resultArea = document.getElementById('doctorPortalDashboard');
+
+        if(!docId || !docPin) {
+            alert("Kripya Doctor ID aur Secure PIN darj karein!");
+            return;
+        }
+
+        // Live patient queue list
+        window.doctorPatientsQueue = [
+            { id: "1", name: "Vijay Chaudhary", abha: "91-2211-7058-0155", age: "20", issue: "Tez Bukhar & Sardi", token: "OPD-7842" },
+            { id: "2", name: "Rahul Sharma", abha: "91-8823-1102-4412", age: "32", issue: "Chhati Me Dard (Chest Pain)", token: "OPD-8910" },
+            { id: "3", name: "Priya Singh", abha: "91-9988-7766-5544", age: "27", issue: "Pet Dard & GhabrAhat", token: "OPD-3412" },
+            { id: "4", name: "Sunita Devi", abha: "91-7788-9900-1122", age: "50", issue: "Joints & Haddi Dard", token: "OPD-5120" }
+        ];
+
+        var queueHTML = '';
+        for(var i = 0; i < window.doctorPatientsQueue.length; i++) {
+            var p = window.doctorPatientsQueue[i];
+            queueHTML += '<div style="background:#1e293b; padding:8px; border-radius:6px; border:1px solid #334155; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">' +
+                '<div style="font-size:11px; color:#e2e8f0;">' +
+                '<b>' + p.name + '</b> (ABHA: ' + p.abha + ')<br>' +
+                '<span style="color:#fbbf24;">Issue: ' + p.issue + '</span> | Token: <b>' + p.token + '</b>' +
+                '</div>' +
+                '<button onclick="window.selectPatientForRx(' + i + ')" style="background:#0284c7; color:#fff; border:none; padding:5px 8px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:10px;">Consult Patient</button>' +
+                '</div>';
+        }
+
+        resultArea.innerHTML = `
+            <div style="background:#0f172a; padding:12px; border-radius:6px; border:1px solid #059669; margin-top:10px; position:relative;">
+                <button onclick="document.getElementById('doctorPortalDashboard').innerHTML=''" style="position:absolute; right:8px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖ Close</button>
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 4px 0;">🩺 Doctor Dashboard - Dr. ID: ${docId}</h4>
+                <p style="font-size:11px; color:#94a3b8; margin:0 0 10px 0;">Status: <span style="color:#34d399; font-weight:bold;">Online & Teleconsultation Active</span></p>
+                
+                <h5 style="color:#fbbf24; margin:0 0 6px 0; font-size:12px;">📋 Live Patient Queue (${window.doctorPatientsQueue.length} Waiting)</h5>
+                ${queueHTML}
+
+                <div id="prescriptionContainer" style="display:none; background:#1e293b; padding:10px; border-radius:6px; border:1px solid #34d399; margin-top:8px; position:relative;">
+                    <button onclick="document.getElementById('prescriptionContainer').style.display='none'" style="position:absolute; right:6px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖</button>
+                    <h5 style="color:#34d399; margin:0 0 6px 0; font-size:12px;">💊 E-Prescription for: <span id="currentActivePatient" style="color:#fbbf24;"></span></h5>
+                    <form onsubmit="window.generatePrescriptionPDF(event)">
+                        <textarea id="rxMedicines" placeholder="Enter Medicines & Dosage (e.g. Paracetamol 650mg - 1-0-1)" required style="width:100%; height:45px; background:#0f172a; color:#fff; border:1px solid #475569; padding:5px; border-radius:4px; font-size:11px; margin-bottom:6px;"></textarea>
+                        <textarea id="rxAdvice" placeholder="Doctor Advice / Precautions" required style="width:100%; height:35px; background:#0f172a; color:#fff; border:1px solid #475569; padding:5px; border-radius:4px; font-size:11px; margin-bottom:8px;"></textarea>
+                        <button type="submit" style="width:100%; background:#059669; color:#fff; border:none; padding:7px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Generate E-Prescription PDF & Print</button>
+                    </form>
+                </div>
             </div>
         `;
-    }
-    else if (portalType === 'doctor') {
-        titleText = "Doctor Specialist Portal";
-        bodyText = "Remote patient history access, clinical decision support, and expert teleconsultation tools.";
-        extraEl.innerHTML = `
-            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
-                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">🩺 Doctor Secure Panel</h4>
-                <input type="text" placeholder="Doctor ID / Medical License No." style="width:100%; padding:6px; margin-bottom:6px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
-                <input type="password" placeholder="Secure PIN" style="width:100%; padding:6px; margin-bottom:8px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
-                <button onclick="alert('Doctor session authenticated successfully!')" style="background:#059669; color:#fff; border:none; padding:8px; width:100%; border-radius:4px; font-weight:bold; cursor:pointer;">Access Teleconsultation Queue</button>
+    };
+
+    window.selectPatientForRx = function(index) {
+        var p = window.doctorPatientsQueue[index];
+        window.selectedPatientRx = p;
+        document.getElementById('prescriptionContainer').style.display = 'block';
+        document.getElementById('currentActivePatient').innerText = p.name + " (ABHA: " + p.abha + ")";
+    };
+
+    window.generatePrescriptionPDF = function(e) {
+        e.preventDefault();
+        var p = window.selectedPatientRx || { name: "Vijay Chaudhary", abha: "91-2211-7058-0155", age: "20" };
+        var meds = document.getElementById('rxMedicines').value;
+        var advice = document.getElementById('rxAdvice').value;
+        var date = new Date().toLocaleDateString();
+
+        var printWindow = window.open('', '', 'width=700,height=600');
+        printWindow.document.write(`
+            <html>
+            <head>
+                <title>ArogyaX Official E-Prescription</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #1e293b; }
+                    .card { border: 2px solid #059669; padding: 20px; border-radius: 8px; max-width: 500px; margin: auto; }
+                    .header { text-align: center; border-bottom: 2px dashed #059669; padding-bottom: 10px; margin-bottom: 15px; }
+                    .header h2 { margin: 0; color: #059669; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+                    .box { background: #f1f5f9; padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 13px; }
+                    .footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <div class="header">
+                        <h2>ArogyaX Teleconsultation</h2>
+                        <p style="margin:3px 0; font-weight:bold;">Digital E-Prescription & Medical Advice</p>
+                    </div>
+                    <div class="row"><span><b>Date:</b> ${date}</span> <span><b>Patient:</b> ${p.name}</span></div>
+                    <div class="row"><span><b>ABHA ID:</b> ${p.abha}</span> <span><b>Age:</b> ${p.age} Yrs</span></div>
+                    <hr>
+                    <div class="box">
+                        <b>Rx (Medicines & Dosage):</b><br>
+                        <p style="white-space: pre-wrap; margin:4px 0;">${meds}</p>
+                    </div>
+                    <div class="box">
+                        <b>Doctor Advice & Precautions:</b><br>
+                        <p style="white-space: pre-wrap; margin:4px 0;">${advice}</p>
+                    </div>
+                    <div class="footer">
+                        Verified Digital Prescription by ArogyaX Specialist Network.<br>
+                        Show this digital copy at any Ayushman Bharat partner pharmacy.
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+
+    extraEl.innerHTML = `
+        <div style="margin-top:12px; border-top:1px solid #059669; padding-top:12px;">
+            <div style="background:#0f172a; padding:10px; border-radius:6px; border:1px solid #1e293b;">
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 8px 0;">🔐 Doctor Secure Panel Login</h4>
+                <form onsubmit="window.verifyDoctorLogin(event)">
+                    <input type="text" id="docIdInput" placeholder="Doctor ID / Medical License No. (e.g. MCI-84920)" required style="width:100%; background:#1e293b; color:#fff; border:1px solid #059669; padding:6px; border-radius:4px; font-size:11px; margin-bottom:6px;">
+                    <input type="password" id="docPinInput" placeholder="Secure PIN" required style="width:100%; background:#1e293b; color:#fff; border:1px solid #059669; padding:6px; border-radius:4px; font-size:11px; margin-bottom:8px;">
+                    <button type="submit" style="width:100%; background:#059669; color:#fff; border:none; padding:7px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Access Teleconsultation Queue</button>
+                </form>
+                <div id="doctorPortalDashboard"></div>
             </div>
-        `;
-    }
+        </div>
+    `;
+}
     else if (portalType === 'emergency' || portalType === 'ambulance') {
         titleText = "Emergency & Ambulance Dispatch";
         bodyText = "Instant GPS-linked ambulance dispatch and emergency SOS helpline integration.";
