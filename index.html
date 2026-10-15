@@ -152,7 +152,7 @@
                 <p id="p4Desc">SOS escalation, ambulance tracking & smart traffic signal priority.</p>
             </div>
             <div class="portal-card" onclick="openPortalModal('schemes')">
-                <h3 id="p5Title"><i class="fa-solid fa-landmark"></i> ArogyaX Schemes (Maharashtra)</h3>
+                <h3 id="p5Title"><i class="fa-solid fa-landmark"></i> ArogyaX Schemes</h3>
                 <p id="p5Desc">Mahatma Jyotirao Phule Jan Arogya Yojana & Health welfare benefits.</p>
             </div>
             <div class="portal-card" onclick="openPortalModal('maternal')">
@@ -488,7 +488,7 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 p3Desc: "Secure rural field data logging, viewing reports, and direct editing.",
                 p4Title: "Emergency & Green Corridor",
                 p4Desc: "SOS escalation, ambulance tracking & smart traffic signal priority.",
-                p5Title: "ArogyaX Schemes (Maharashtra)",
+                p5Title: "ArogyaX Schemes",
                 p5Desc: "Mahatma Jyotirao Phule Jan Arogya Yojana & Health welfare benefits.",
                 p6Title: "Maternal, Child & Chronic Tracker",
                 p6Desc: "Tracking pregnancy milestones, immunization schedules & chronic care.",
@@ -511,7 +511,7 @@ db.ref('ashaReports').on('value', (snapshot) => {
                 reqOtpBtn: "Send OTP Request to Admin",
                 enterOtpLabel: "Enter 4-Digit OTP:",
                 verifyOtpBtn: "Verify Login",
-                adminTitle: "Govt of Maharashtra - Admin Control Panel",
+                adminTitle: "Govt of india - Admin Control Panel",
                 adminPassPrompt: "Enter Secure Admin Password (Default: Vijay123):",
                 adminLoginBtn: "Login"
             }
@@ -1065,20 +1065,71 @@ db.ref('ashaReports').on('value', (snapshot) => {
         `;
     }
     else if (portalType === 'schemes' || portalType === 'government') {
-        titleText = "ArogyaX Schemes (Maharashtra)";
-        bodyText = "Explore Mahatma Jyotirao Phule Jan Arogya Yojana & other state health welfare benefits.";
-        extraEl.innerHTML = `
-            <div style="margin-top:10px; border-top:1px solid #059669; padding-top:10px;">
-                <h4 style="color:#34d399; font-size:13px; margin-bottom:8px;">📜 Available Health Schemes</h4>
-                <ul style="font-size:12px; color:#d1d5db; padding-left:15px; margin-bottom:8px;">
-                    <li><b>MJPJAY:</b> Cashless medical treatment up to ₹1.5 Lakhs.</li>
-                    <li><b>Pradhan Mantri Jan Arogya Yojana (AB-PMJAY):</b> Comprehensive health coverage.</li>
+    titleText = "ArogyaX Schemes";
+    bodyText = "Government & National Health Welfare Benefits, Eligibility Checker, and Digital Scheme Pass.";
+    
+    window.checkSchemeEligibility = function(e) {
+        if(e) e.preventDefault();
+        var income = document.getElementById('familyIncome').value;
+        var cardType = document.getElementById('rationCardType').value;
+        var resBox = document.getElementById('schemeCheckResult');
+
+        if(!income) {
+            resBox.innerHTML = "<span style='color:#ef4444;'>Kripya varshik aay (Annual Income) darj karein.</span>";
+            return;
+        }
+
+        var isEligible = (parseInt(income) <= 250000 || cardType === "yellow" || cardType === "orange");
+        var coverageAmount = isEligible ? "₹5,00,000" : "₹1,50,000 (Partial Subsidy)";
+
+        resBox.innerHTML = '<div style="background:#064e3b; padding:10px; border-radius:6px; border:1px solid #34d399; color:#e2e8f0; font-size:12px; position:relative; margin-top:8px;">' +
+            '<button onclick="document.getElementById(\'schemeCheckResult\').innerHTML=\'\'" style="position:absolute; right:6px; top:6px; background:none; border:none; color:#f87171; font-weight:bold; cursor:pointer; font-size:14px;">✖</button>' +
+            '<h5 style="color:#fbbf24; margin:0 0 4px 0; font-size:13px;">🏛 Eligibility Status: ' + (isEligible ? '✔ ELIGIBLE' : 'ℹ LIMITED COVERAGE') + '</h5>' +
+            '<p style="margin:2px 0;"><b>Scheme:</b> Ayushman Bharat Digital Mission & National Health Welfare</p>' +
+            '<p style="margin:2px 0;"><b>Annual Health Coverage:</b> <span style="color:#34d399; font-weight:bold;">' + coverageAmount + ' per family/year</span></p>' +
+            '<p style="margin:2px 0;"><b>Empanelled Hospitals:</b> 25,000+ Government & Private Hospitals</p>' +
+            '<button onclick="window.generateSchemePass()" style="margin-top:8px; background:#16a34a; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:11px;">Download Digital Scheme Health Pass</button>' +
+            '</div>';
+    };
+
+    window.generateSchemePass = function() {
+        var printWindow = window.open('', '', 'width=700,height=600');
+        var date = new Date().toLocaleDateString();
+        var passNo = "AROGYAX-SCHEME-" + Math.floor(100000 + Math.random() * 900000);
+
+        printWindow.document.write('<html><head><title>ArogyaX Digital Health Scheme Pass</title><style>body { font-family: Arial, sans-serif; padding: 20px; color: #1e293b; } .card { border: 2px solid #059669; padding: 20px; border-radius: 8px; max-width: 520px; margin: auto; background: #f0fdf4; } .header { text-align: center; border-bottom: 2px dashed #059669; padding-bottom: 10px; margin-bottom: 15px; } .header h2 { margin: 0; color: #059669; } .row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; } .benefit-box { background: #059669; color: white; text-align: center; font-size: 16px; font-weight: bold; padding: 10px; border-radius: 6px; margin-top: 15px; } .footer { text-align: center; font-size: 11px; color: #64748b; margin-top: 20px; }</style></head><body><div class="card"><div class="header"><h2>ArogyaX Digital Healthcare Platform</h2><p style="margin:3px 0; font-weight:bold; color:#15803d;">National Health Scheme Digital Certificate</p></div><div class="row"><span><b>Pass ID:</b> ' + passNo + '</span> <span><b>Date:</b> ' + date + '</span></div><hr><div class="row"><span><b>Primary Beneficiary:</b> Vijay Chaudhary</span> <span><b>Status:</b> Active</span></div><div class="row"><span><b>ABHA Linked ID:</b> 91-2211-7058-0155</span> <span><b>Card Status:</b> Verified Beneficiary</span></div><div class="benefit-box">TOTAL COVERAGE: ₹5,00,000 / YEAR</div><div class="footer">Valid across all Empanelled Government & Private Hospitals.<br>Present this digital pass or ABHA Health ID at the hospital desk.</div></div><script>window.onload = function() { window.print(); }<\/script></body></html>');
+        printWindow.document.close();
+    };
+
+    extraEl.innerHTML = `
+        <div style="margin-top:12px; border-top:1px solid #059669; padding-top:12px; display:flex; flex-direction:column; gap:12px;">
+            <div style="background:#0f172a; padding:10px; border-radius:6px; border:1px solid #1e293b;">
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 6px 0;">🏛 Active Health Welfare Schemes</h4>
+                <ul style="font-size:11px; color:#cbd5e1; margin:0; padding-left:18px; line-height:1.6;">
+                    <li><b>Ayushman Bharat PM-JAY:</b> Cashless treatment up to ₹5 Lakh/family per year.</li>
+                    <li><b>National Health Mission Benefits:</b> Free Diagnostic & Surgery Support in Government Hospitals.</li>
+                    <li><b>ABHA Digital Health Locker Integration:</b> Automatic claims verification via ABHA ID.</li>
                 </ul>
-                <input type="text" placeholder="Check Eligibility via Aadhaar / Ration Card" style="width:100%; padding:6px; margin-bottom:8px; background:#111827; border:1px solid #374151; color:#fff; border-radius:4px;">
-                <button onclick="alert('Eligibility Verified under MJPJAY Scheme!')" style="background:#059669; color:#fff; border:none; padding:8px; width:100%; border-radius:4px; font-weight:bold; cursor:pointer;">Check Eligibility</button>
             </div>
-        `;
-    }
+
+            <div style="background:#0f172a; padding:10px; border-radius:6px; border:1px solid #1e293b;">
+                <h4 style="color:#34d399; font-size:13px; margin:0 0 8px 0;">🔍 Check Scheme Eligibility & Benefits</h4>
+                <form onsubmit="window.checkSchemeEligibility(event)">
+                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                        <input type="number" id="familyIncome" placeholder="Varshik Aay / Annual Income (₹)" required style="width:50%; background:#1e293b; color:#fff; border:1px solid #059669; padding:6px; border-radius:4px; font-size:11px;">
+                        <select id="rationCardType" style="width:50%; background:#1e293b; color:#fff; border:1px solid #059669; padding:6px; border-radius:4px; font-size:11px;">
+                            <option value="yellow">BPL / Priority Ration Card</option>
+                            <option value="orange">APL Ration Card</option>
+                            <option value="white">General / Standard Card</option>
+                        </select>
+                    </div>
+                    <button type="submit" style="width:100%; background:#059669; color:#fff; border:none; padding:7px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Calculate Benefits & Coverage</button>
+                </form>
+                <div id="schemeCheckResult"></div>
+            </div>
+        </div>
+    `;
+}
     else if (portalType === 'maternal' || portalType === 'tracker') {
         titleText = "Maternal, Child & Chronic Tracker";
         bodyText = "Tracking pregnancy milestones, immunization schedules, and chronic care management.";
